@@ -127,22 +127,16 @@ public class LotteryService {
 
     private List<Integer> getAvailableNumbers(List<Integer> guestNos, List<LotteryConfig.Prize> prizes, int size) {
         List<Integer> availableGuestNos = new ArrayList<>();
-        List<LotteryConfig.Prize> groupActivityPrizes = prizes.stream().filter(p -> p.isGroupActivity()).collect(Collectors.toList());
+        List<LotteryConfig.Prize> noneGroupActivityEnoughPrizes = prizes
+                .stream()
+                .filter(p -> !p.isGroupActivity() && p.getInventory() >= size)
+                .collect(Collectors.toList());
         for (Integer no : guestNos) {
-            if (groupActivityPrizes.stream().noneMatch(p -> no >= p.getStart() && no < p.getEnd())) {
+            if (noneGroupActivityEnoughPrizes.stream().anyMatch(p -> no >= p.getStart() && no < p.getEnd())) {
                 availableGuestNos.add(no);
             }
         }
-        List<LotteryConfig.Prize> noneGroupActivityNotEnoughPrizes = prizes
-                .stream()
-                .filter(p -> !p.isGroupActivity() && p.getInventory() < size)
-                .collect(Collectors.toList());
-        for (int i = availableGuestNos.size() - 1; i >= 0; i--) {
-            Integer number = availableGuestNos.get(i);
-            if (noneGroupActivityNotEnoughPrizes.stream().anyMatch(p -> p.getStart() <= number && p.getEnd() > number)) {
-                availableGuestNos.remove(number);
-            }
-        }
+
         return availableGuestNos;
     }
 
