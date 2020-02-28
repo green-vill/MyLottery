@@ -77,7 +77,7 @@ public class LotteryService {
                     if (personSize - 1 <= prize.getInventory() - 1) {
 //                        randomService.guestNos.remove(firstNumber);
                         List<Integer> availableGuestNos = getAvailableNumbers(randomService.guestNos, prizes, personSize - 1);
-                        availableGuestNos.remove(firstNumber);
+//                        availableGuestNos.remove(firstNumber);
                         List<Integer> numbers = randomService.getGuestNumbers(personList.size() - 1, availableGuestNos);
                         if (CollectionUtils.isEmpty(numbers)) {
                             System.out.println("get non GroupAct Numbers empty, firstNumber:" + firstNumber);
@@ -129,7 +129,7 @@ public class LotteryService {
         List<Integer> availableGuestNos = new ArrayList<>();
         List<LotteryConfig.Prize> noneGroupActivityEnoughPrizes = prizes
                 .stream()
-                .filter(p -> !p.isGroupActivity() && p.getInventory() >= size)
+                .filter(p -> !p.isGroupActivity())
                 .collect(Collectors.toList());
         for (Integer no : guestNos) {
             if (noneGroupActivityEnoughPrizes.stream().anyMatch(p -> no >= p.getStart() && no < p.getEnd())) {
