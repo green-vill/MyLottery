@@ -30,7 +30,7 @@ public class LotteryConfig {
     }
 
     public LotteryConfig() {
-        guestForeCast = 100;
+        guestForeCast = 10000;
         inventory = 10;
         setupPrize();
     }
@@ -72,6 +72,8 @@ public class LotteryConfig {
             prize.end = prize.inventoryControl ? startIndex + (int) numbers : guestForeCast;
             startIndex += numbers;
             prize.inventory = prize.end - prize.start;
+            System.out.println("prize name:" + prize.getName() + ",prize start:" + prize.getStart() +
+                    ",prize end:" + prize.getEnd() + ",prize inventory:" + prize.getInventory() + ",prize is groupActivity:" + prize.isGroupActivity());
         })).collect(Collectors.toList());
     }
 }

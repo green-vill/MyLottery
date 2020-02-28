@@ -1,6 +1,7 @@
 package com.lucky.test;
 
 import lombok.Data;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,29 +18,49 @@ public class LotteryService {
     }
 
     public void generateNumbers(List<Person> personList) {
-        long startTime = System.currentTimeMillis();
         if (personList == null || personList.size() == 0) {
             return;
         }
         int personSize = personList.size();
         List<Integer> firstNumbers = randomService.getGuestNumbers(1, null);
+        if (CollectionUtils.isEmpty(firstNumbers)) {
+            System.out.println("firstNumbers is empty");
+            System.out.print("guestNos:");
+            randomService.guestNos.forEach(n -> System.out.print(n + " "));
+            personList.forEach(p -> System.out.println(p));
+            return;
+        }
         Integer firstNumber = firstNumbers.get(0);
         List<LotteryConfig.Prize> prizes = lotteryConfig.getPrizes();
         for (LotteryConfig.Prize prize : prizes) {
             if (firstNumber >= prize.getStart() && firstNumber < prize.getEnd()) {
+                if (personSize == 1) {
+                    personList.get(0).setPrize(prize);
+                    personList.get(0).setNumber(firstNumber);
+                    prize.setInventory(prize.getInventory() - 1);
+                    break;
+                }
                 if (prize.isGroupActivity()) {
-                    if (personSize - 1 <= prize.getInventory()) {
-                        randomService.guestNos.remove(firstNumber);
+                    if (personSize - 1 <= prize.getInventory() - 1) {
+//                        randomService.guestNos.remove(firstNumber);
                         List<Integer> groupActivityNumbers = new ArrayList<>();
                         for (int i = prize.getStart(); i < prize.getEnd(); i++) {
                             groupActivityNumbers.add(i);
                         }
                         groupActivityNumbers.remove(firstNumber);
                         List<Integer> leftNumbers = randomService.getGuestNumbers(personSize - 1, groupActivityNumbers);
+                        if (CollectionUtils.isEmpty(leftNumbers)) {
+                            System.out.println("leftNumbers empty, firstNumber:" + firstNumber);
+                            System.out.print("guestNos:");
+                            randomService.guestNos.forEach(n -> System.out.print(n + " "));
+                            personList.forEach(p -> System.out.println(p));
+                            return;
+                        }
                         for (Integer number : leftNumbers) {
                             randomService.guestNos.remove(number);
                         }
                         for (int i = 0; i < personSize; i++) {
+                            prize.setInventory(prize.getInventory() - 1);
                             Person person = personList.get(i);
                             person.setPrize(prize);
                             if (i == 0) {
@@ -49,14 +70,20 @@ public class LotteryService {
                             }
                         }
                     } else {
+                        randomService.guestNos.add(firstNumber);
                         getNoneGroupActivityNumbers(randomService, prizes, personList);
                     }
                 } else {
-                    if (personSize - 1 <= prize.getInventory()) {
-                        randomService.guestNos.remove(firstNumber);
+                    if (personSize - 1 <= prize.getInventory() - 1) {
+//                        randomService.guestNos.remove(firstNumber);
                         List<Integer> availableGuestNos = getAvailableNumbers(randomService.guestNos, prizes, personSize - 1);
                         availableGuestNos.remove(firstNumber);
                         List<Integer> numbers = randomService.getGuestNumbers(personList.size() - 1, availableGuestNos);
+                        if (CollectionUtils.isEmpty(numbers)) {
+                            System.out.println("get non GroupAct Numbers empty, firstNumber:" + firstNumber);
+                            personList.forEach(p -> System.out.println(p));
+                            return;
+                        }
                         for (int i = 0; i < personSize; i++) {
                             if (i == 0) {
                                 Person person = personList.get(i);
@@ -68,18 +95,29 @@ public class LotteryService {
                             }
                         }
                     } else {
+                        randomService.guestNos.add(firstNumber);
                         getNoneGroupActivityNumbers(randomService, prizes, personList);
                     }
                 }
                 break;
             }
         }
-        System.out.println("take time total: " + (System.currentTimeMillis() - startTime) + "ms");
     }
 
     private void getNoneGroupActivityNumbers(RandomService randomService, List<LotteryConfig.Prize> prizes, List<Person> personList) {
         List<Integer> availableGuestNos = getAvailableNumbers(randomService.guestNos, prizes, personList.size());
+        if (CollectionUtils.isEmpty(availableGuestNos)) {
+            System.out.println("getNoneGroupActivityNumbers empty, guestNos:");
+            randomService.guestNos.forEach(no -> System.out.print(no + " "));
+            personList.forEach(p -> System.out.println(p));
+            return;
+        }
         List<Integer> numbers = randomService.getGuestNumbers(personList.size(), availableGuestNos);
+        if (CollectionUtils.isEmpty(numbers)) {
+            System.out.println("getNoneGroupActivityNumbers empty");
+            personList.forEach(p -> System.out.println(p));
+            return;
+        }
         for (int i = 0; i < numbers.size(); i++) {
             Integer number = numbers.get(i);
             Person person = personList.get(i);

@@ -1,6 +1,8 @@
 package com.lucky.test;
 
 
+import org.springframework.util.CollectionUtils;
+
 import java.util.*;
 
 public class RandomService {
@@ -37,16 +39,23 @@ public class RandomService {
         if (numbers != null && numbers.size() > 0) {
             data = numbers;
         }
+        if (CollectionUtils.isEmpty(data)) {
+            System.out.println("data is null");
+            return new ArrayList<>();
+        }
         int n = data.size();
         List<Integer> results = new ArrayList<>();
         for (int i = 0; i < k; i++) {
             // 取出一个随机数
             int r = (int) (Math.random() * n);
-
+            if (CollectionUtils.isEmpty(data)) {
+                System.out.println("data is null");
+                break;
+            }
             Integer value = data.get(r);
             results.add(value);
             // 排除已经取过的值
-//            data.remove(value);
+            data.remove(value);
             n--;
         }
         return results;
